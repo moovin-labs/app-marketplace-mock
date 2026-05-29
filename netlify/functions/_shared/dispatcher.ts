@@ -1,17 +1,20 @@
-import { json } from './http'
+import type { CommandName } from './contracts'
 import { handlers } from './handlers'
+import { json } from './http'
 
-export async function dispatchAction(action: string, payload: Record<string, unknown>) {
-  const handler = handlers[action]
+export async function dispatchCommand(
+  command: CommandName,
+  data: Record<string, unknown>,
+  connectionId: string,
+) {
+  const handler = handlers[command]
 
   if (!handler) {
-    return json(400, {
+    return json(200, {
       type: 'error',
-      code: 'UNSUPPORTED_ACTION',
-      message: `Action nao suportada: ${action}`,
-      availableActions: Object.keys(handlers),
+      message: `Unsupported command: ${command}`,
     })
   }
 
-  return handler(payload)
+  return handler(data, connectionId)
 }

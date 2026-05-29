@@ -1,50 +1,57 @@
 # app-marketplace-mock
 
-API mock unica para simular respostas de integracao do hub-marketplace.
+API mock unica para simular respostas de integracao Hub/App Marketplace.
 
 ## Endpoint
 
 - URL local: `http://localhost:8888/api/mock`
 - Metodo: `POST`
-- Contrato: `action + payload`
+- Contrato: `command + connectionId + data`
 
 Exemplo de request:
 
 ```json
 {
-  "action": "listOrders",
-  "payload": {
-    "scenario": "success",
-    "delayMs": 0
+  "command": "listOrders",
+  "connectionId": "conn-ml-01",
+  "data": {
+    "filters": {}
   }
 }
 ```
 
-## Cenarios suportados
+## Envelope de resposta
 
-Defina em `payload.scenario`:
+Sucesso:
 
-- `success`
-- `validation_error`
-- `unauthorized`
-- `not_found`
-- `timeout`
-- `internal_error`
+```json
+{
+  "type": "success",
+  "data": {}
+}
+```
 
-`payload.delayMs` permite adicionar latencia artificial em milissegundos (0 a 30000).
+Erro:
 
-## Acoes suportadas v1
+```json
+{
+  "type": "error",
+  "message": "string"
+}
+```
+
+## Commands suportados
 
 - `listConnections`
 - `getCategorization`
-- `listAnnouncements`
-- `getAnnouncement`
 - `createAnnouncement`
+- `getAnnouncement`
+- `listAnnouncements`
 - `updateAnnouncement`
 - `updateStock`
 - `updatePrice`
-- `listOrders`
 - `getOrder`
+- `listOrders`
 - `updateOrder`
 
 ## Rodando local
@@ -60,10 +67,14 @@ npm run dev
 curl -X POST http://localhost:8888/api/mock \
   -H 'Content-Type: application/json' \
   -d '{
-    "action": "updateStock",
-    "payload": {
-      "scenario": "success",
-      "codeOnChannel": "MLB-1000"
+    "command": "updateStock",
+    "connectionId": "conn-ml-01",
+    "data": {
+      "codeOnChannel": "MLB-1000",
+      "stock": {
+        "quantity": 10,
+        "crossDocking": 0
+      }
     }
   }'
 ```

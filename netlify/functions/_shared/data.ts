@@ -1,72 +1,258 @@
-export const commandCatalog = [
-  'listConnections',
-  'getCategorization',
-  'listAnnouncements',
-  'getAnnouncement',
-  'createAnnouncement',
-  'updateAnnouncement',
-  'updateStock',
-  'updatePrice',
-  'listOrders',
-  'getOrder',
-  'updateOrder',
-] as const
+const nowIso = '2026-05-29T10:00:00.000Z'
 
-export type CommandName = (typeof commandCatalog)[number]
+const syncControl = {
+  status: 'SUCCESS',
+  message: 'Command executed successfully',
+}
 
-export const mockConnections = [
+const connectionItems = [
   {
     id: 'conn-ml-01',
     name: 'Mercado Livre Principal',
-    status: 'ACTIVE',
   },
   {
     id: 'conn-shp-01',
     name: 'Shopee BR',
-    status: 'ACTIVE',
   },
 ]
 
-export const mockAnnouncements = [
+const announcementFacets = {
+  announcement: {
+    settings: [
+      {
+        id: 'condition',
+        name: 'Condition',
+        required: true as const,
+        options: [
+          { key: 'new', value: 'New' },
+          { key: 'used', value: 'Used' },
+        ],
+      },
+    ],
+    attributes: [
+      {
+        id: 'brand',
+        name: 'Brand',
+        required: true as const,
+        options: [
+          { key: 'brand-a', value: 'Brand A' },
+          { key: 'brand-b', value: 'Brand B' },
+        ],
+      },
+    ],
+  },
+  variation: {
+    attributes: [
+      {
+        id: 'color',
+        name: 'Color',
+        required: true as const,
+        options: [
+          { key: 'black', value: 'Black' },
+          { key: 'white', value: 'White' },
+        ],
+      },
+    ],
+  },
+}
+
+const announcementItems = [
   {
     codeOnChannel: 'MLB-1000',
     title: 'Notebook Pro 16',
-    active: true,
-    stock: 12,
-    price: {
-      list: 8999,
-      sale: 8499,
+    description: 'Notebook high performance',
+    channelCategory: {
+      id: 'cat-1',
+      label: 'Eletronicos',
+      parent: {},
     },
-  },
-  {
-    codeOnChannel: 'MLB-1001',
-    title: 'Mouse Gamer RGB',
-    active: true,
-    stock: 150,
-    price: {
-      list: 299,
-      sale: 249,
-    },
+    channelSettings: [
+      {
+        id: 'condition',
+        name: 'condition',
+        label: 'Condition',
+        value: 'new',
+      },
+    ],
+    channelAttributes: [
+      {
+        id: 'brand',
+        name: 'brand',
+        label: 'Brand',
+        value: 'Brand A',
+      },
+    ],
+    images: [{ url: 'https://mock.cdn/images/notebook-1.jpg', position: 1 }],
+    variations: [
+      {
+        codeOnChannel: 'MLB-1000-BLK',
+        ean: '789000000001',
+        images: [{ url: 'https://mock.cdn/images/notebook-1-black.jpg', position: 1 }],
+        channelAttributes: [
+          {
+            id: 'color',
+            name: 'color',
+            label: 'Color',
+            value: 'Black',
+          },
+        ],
+        shipping: {
+          width: 40,
+          height: 8,
+          length: 28,
+          weight: 2.3,
+        },
+      },
+    ],
   },
 ]
 
-export const mockOrders = [
+const orderItems = [
   {
     codeOnChannel: 'ORD-9001',
     status: 'APPROVED',
     customer: {
       name: 'Ana Souza',
+      email: 'ana.souza@example.com',
       document: '12345678900',
+      phone: '+5511999999999',
+      type: 'INDIVIDUAL',
     },
-    total: 8748,
-  },
-  {
-    codeOnChannel: 'ORD-9002',
-    status: 'PENDING',
-    customer: {
-      name: 'Lucas Dias',
-      document: '10987654321',
+    shipping: {
+      method: {
+        type: 'STANDARD',
+        name: 'Correios PAC',
+        carrierName: 'Correios',
+        deliveryTime: 5,
+        code: 'PAC',
+      },
+      address: {
+        zipCode: '01310100',
+        street: 'Av Paulista',
+        number: '1000',
+        complement: 'Conj 101',
+        district: 'Bela Vista',
+        city: 'Sao Paulo',
+        state: 'SP',
+      },
+      tracking: {
+        postDate: nowIso,
+        deliveryDate: nowIso,
+        code: 'TRACK-9001',
+        link: 'https://carrier.example.com/TRACK-9001',
+      },
     },
-    total: 249,
+    items: [
+      {
+        product: {
+          codeOnChannel: 'MLB-1000',
+        },
+        variation: {
+          codeOnChannel: 'MLB-1000-BLK',
+          gtin: '789000000001',
+        },
+        description: 'Notebook Pro 16 - Black',
+        image: 'https://mock.cdn/images/notebook-1-black.jpg',
+        quantity: 1,
+        price: 8499,
+      },
+    ],
+    billing: {
+      payment: {
+        type: 'CREDIT_CARD',
+        installments: 10,
+      },
+      address: {
+        zipCode: '01310100',
+        street: 'Av Paulista',
+        number: '1000',
+        complement: 'Conj 101',
+        district: 'Bela Vista',
+        city: 'Sao Paulo',
+        state: 'SP',
+      },
+      amounts: {
+        subtotal: 8499,
+        shipping: 49,
+        discount: 0,
+        total: 8548,
+      },
+      invoice: {
+        key: 'NFE-KEY-9001',
+        number: '9001',
+        serial: '1',
+        issuedOn: nowIso,
+        xml: '<xml />',
+        link: 'https://mock.cdn/invoice/9001.xml',
+      },
+    },
+    approvedAt: nowIso,
+    canceledAt: nowIso,
+    updatedAt: nowIso,
+    createdAt: nowIso,
   },
 ]
+
+export function getListConnectionsData() {
+  return {
+    items: connectionItems,
+    total: connectionItems.length,
+  }
+}
+
+export function getCategorizationData() {
+  return {
+    items: [
+      { id: 'cat-1', name: 'Eletronicos' },
+      { id: 'cat-2', name: 'Informatica' },
+    ],
+    facets: announcementFacets,
+  }
+}
+
+export function getListAnnouncementsData() {
+  return {
+    items: announcementItems,
+    total: announcementItems.length,
+  }
+}
+
+export function getAnnouncementByCode(codeOnChannel: string) {
+  return announcementItems.find((item) => item.codeOnChannel === codeOnChannel)
+}
+
+export function getAnnouncementOperationData() {
+  return {
+    codeOnChannel: 'MLB-NEW-2001',
+    syncControl,
+    variations: [
+      {
+        codeOnChannel: 'MLB-NEW-2001-BLK',
+        syncControl,
+        stock: {
+          syncControl,
+        },
+        price: {
+          syncControl,
+        },
+      },
+    ],
+  }
+}
+
+export function getSyncControlData() {
+  return {
+    syncControl,
+  }
+}
+
+export function getListOrdersData() {
+  return {
+    items: orderItems,
+    total: orderItems.length,
+  }
+}
+
+export function getOrderByCode(codeOnChannel: string) {
+  return orderItems.find((item) => item.codeOnChannel === codeOnChannel)
+}

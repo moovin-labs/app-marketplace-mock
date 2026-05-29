@@ -1,7 +1,15 @@
-import type { ActionResolver, SuccessEnvelope } from './contracts'
-import { mockAnnouncements, mockConnections, mockOrders } from './data'
+import type { CommandName, CommandResolver, ErrorEnvelope, SuccessEnvelope } from './contracts'
+import {
+    getAnnouncementByCode,
+    getAnnouncementOperationData,
+    getCategorizationData,
+    getListAnnouncementsData,
+    getListConnectionsData,
+    getListOrdersData,
+    getOrderByCode,
+    getSyncControlData,
+} from './data'
 import { json } from './http'
-import { handleCommonScenario, maybeDelay } from './scenario'
 
 function success<T>(data: T) {
   const body: SuccessEnvelope<T> = {
@@ -12,119 +20,69 @@ function success<T>(data: T) {
   return json(200, body)
 }
 
-function syncControl(status: string, message: string) {
-  return {
-    syncControl: {
-      status,
-      message,
-      updatedAt: new Date().toISOString(),
-    },
-  }
-}
-
-async function withScenario(
-  payload: Record<string, unknown>,
-  onSuccess: () => ReturnType<typeof json>,
-) {
-  await maybeDelay(payload)
-
-  const scenarioResponse = await handleCommonScenario(payload)
-
-  if (scenarioResponse) {
-    return scenarioResponse
+function error(message: string) {
+  const body: ErrorEnvelope = {
+    type: 'error',
+    message,
   }
 
-  return onSuccess()
+  return json(200, body)
 }
 
-export const handlers: Record<string, ActionResolver> = {
-  listConnections: async (payload) =>
-    withScenario(payload, () => {
-      return success({
-        items: mockConnections,
-        total: mockConnections.length,
-      })
-    }),
+function getDataString(data: Record<string, unknown>, key: string): string | null {
+  const value = data[key]
 
-  getCategorization: async (payload) =>
-    withScenario(payload, () => {
-      return success({
-        categories: [
-          {
-            id: 'cat-1',
-            name: 'Eletronicos',
-            children: [
-              { id: 'cat-1-1', name: 'Computadores' },
-              { id: 'cat-1-2', name: 'Perifericos' },
-            ],
-          },
-        ],
-      })
-    }),
+  return typeof value === 'string' && value.length > 0 ? value : null
+}
 
-  listAnnouncements: async (payload) =>
-    withScenario(payload, () => {
-      return success({
-        items: mockAnnouncements,
-        total: mockAnnouncements.length,
-      })
-    }),
+export const handlers: Record<CommandName, CommandResolver> = {
+  listConnections: async () => success(getListConnectionsData()),
 
-  getAnnouncement: async (payload) =>
-    withScenario(payload, () => {
-      const codeOnChannel = payload.codeOnChannel
-      const found =
-        typeof codeOnChannel === 'string'
-          ? mockAnnouncements.find((item) => item.codeOnChannel === codeOnChannel)
-          : mockAnnouncements[0]
+  getCategorization: async () => success(getCategorizationData()),
 
-      return success(found ?? mockAnnouncements[0])
-    }),
+  listAnnouncements: async () => success(getListAnnouncementsData()),
 
-  createAnnouncement: async (payload) =>
-    withScenario(payload, () => {
-      return success({
-        codeOnChannel: 'MLB-NEW-2001',
-        ...syncControl('SUCCESS', 'Anuncio criado com sucesso no canal'),
-      })
-    }),
+  getAnnouncement: async (data) => {
+    const codeOnChannel = getDataString(data, 'codeOnChannel')
 
-  updateAnnouncement: async (payload) =>
-    withScenario(payload, () => {
-      return success(syncControl('SUCCESS', 'Anuncio atualizado com sucesso'))
-    }),
+    if (!codeOnChannel) {
+      return error('Command getAnnouncement requires data.codeOnChannel')
+    }
 
-  updateStock: async (payload) =>
-    withScenario(payload, () => {
-      return success(syncControl('SUCCESS', 'Estoque atualizado com sucesso'))
-    }),
+    const announcement = getAnnouncementByCode(codeOnChannel)
 
-  updatePrice: async (payload) =>
-    withScenario(payload, () => {
-      return success(syncControl('SUCCESS', 'Preco atualizado com sucesso'))
-    }),
+    if (!announcement) {
+      return error('Announcement not found for informed codeOnChannel')
+    }
 
-  listOrders: async (payload) =>
-    withScenario(payload, () => {
-      return success({
-        items: mockOrders,
-        total: mockOrders.length,
-      })
-    }),
+    return success(announcement)
+  },
 
-  getOrder: async (payload) =>
-    withScenario(payload, () => {
-      const codeOnChannel = payload.codeOnChannel
-      const found =
-        typeof codeOnChannel === 'string'
-          ? mockOrders.find((item) => item.codeOnChannel === codeOnChannel)
-          : mockOrders[0]
+  createAnnouncement: async () => success(getAnnouncementOperationData()),
 
-      return success(found ?? mockOrders[0])
-    }),
+  updateAnnouncement: async () => success(getAnnouncementOperationData()),
 
-  updateOrder: async (payload) =>
-    withScenario(payload, () => {
-      return success(syncControl('SUCCESS', 'Pedido atualizado com sucesso'))
-    }),
+  updateStock: async () => success(getSyncControlData()),
+
+  updatePrice: async () => success(getSyncControlData()),
+
+  listOrders: async () => success(getListOrdersData()),
+
+  getOrder: async (data) => {
+    const codeOnChannel = getDataString(data, 'codeOnChannel')
+
+    if (!codeOnChannel) {
+      return error('Command getOrder requires data.codeOnChannel')
+    }
+
+    const order = getOrderByCode(codeOnChannel)
+
+    if (!order) {
+      return error('Order not found for informed codeOnChannel')
+    }
+
+    return success(order)
+  },
+
+  updateOrder: async () => success(getSyncControlData()),
 }

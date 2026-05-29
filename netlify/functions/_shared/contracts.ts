@@ -1,19 +1,27 @@
 import { z } from 'zod'
 
-export const mockRequestSchema = z.object({
-  action: z.string().min(1),
-  payload: z.record(z.unknown()).default({}),
+export const commandEnum = z.enum([
+  'listConnections',
+  'getCategorization',
+  'createAnnouncement',
+  'getAnnouncement',
+  'listAnnouncements',
+  'updateAnnouncement',
+  'updateStock',
+  'updatePrice',
+  'getOrder',
+  'listOrders',
+  'updateOrder',
+])
+
+export const marketplaceCommandRequestSchema = z.object({
+  command: commandEnum,
+  connectionId: z.string().min(1),
+  data: z.record(z.unknown()).default({}),
 })
 
-export type MockRequest = z.infer<typeof mockRequestSchema>
-
-export type MockScenario =
-  | 'success'
-  | 'validation_error'
-  | 'unauthorized'
-  | 'not_found'
-  | 'timeout'
-  | 'internal_error'
+export type MarketplaceCommandRequest = z.infer<typeof marketplaceCommandRequestSchema>
+export type CommandName = z.infer<typeof commandEnum>
 
 export type MockFunctionResponse = {
   statusCode: number
@@ -21,7 +29,10 @@ export type MockFunctionResponse = {
   headers?: Record<string, string>
 }
 
-export type ActionResolver = (payload: Record<string, unknown>) => Promise<MockFunctionResponse>
+export type CommandResolver = (
+  data: Record<string, unknown>,
+  connectionId: string,
+) => Promise<MockFunctionResponse>
 
 export type SuccessEnvelope<T> = {
   type: 'success'
@@ -31,6 +42,4 @@ export type SuccessEnvelope<T> = {
 export type ErrorEnvelope = {
   type: 'error'
   message: string
-  code?: string
-  details?: unknown
 }
