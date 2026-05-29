@@ -38,7 +38,11 @@ function getDataString(data: Record<string, unknown>, key: string): string | nul
 export const handlers: Record<CommandName, CommandResolver> = {
   listConnections: async () => success(getListConnectionsData()),
 
-  getCategorization: async () => success(getCategorizationData()),
+  getCategorization: async (data) => {
+    const parent = getDataString(data, 'parent')
+
+    return success(getCategorizationData(parent ?? undefined))
+  },
 
   listAnnouncements: async () => success(getListAnnouncementsData()),
 

@@ -56,6 +56,190 @@ const announcementFacets = {
   },
 }
 
+type CategoryNode = {
+  id: string
+  name: string
+  children?: Array<CategoryNode>
+}
+
+const categoryTree: Array<CategoryNode> = [
+  {
+    id: '100',
+    name: 'Informatica',
+    children: [
+      {
+        id: '110',
+        name: 'Notebooks e Acessorios',
+        children: [
+          { id: '111', name: 'Notebooks' },
+          { id: '112', name: 'Carregadores e Fontes' },
+        ],
+      },
+      {
+        id: '120',
+        name: 'Componentes para PC',
+        children: [
+          { id: '121', name: 'Placas de Video' },
+          { id: '122', name: 'Processadores' },
+        ],
+      },
+      {
+        id: '130',
+        name: 'Perifericos de PC',
+        children: [
+          { id: '131', name: 'Mouses e Teclados' },
+          { id: '132', name: 'Monitores' },
+        ],
+      },
+    ],
+  },
+  {
+    id: '200',
+    name: 'Celulares e Telefones',
+    children: [
+      {
+        id: '210',
+        name: 'Smartphones',
+        children: [
+          { id: '211', name: 'Android' },
+          { id: '212', name: 'iPhone' },
+        ],
+      },
+      {
+        id: '220',
+        name: 'Acessorios para Celulares',
+        children: [
+          { id: '221', name: 'Capas e Peliculas' },
+          { id: '222', name: 'Cabos e Carregadores' },
+        ],
+      },
+      {
+        id: '230',
+        name: 'Smartwatches e Acessorios',
+        children: [
+          { id: '231', name: 'Smartwatches' },
+          { id: '232', name: 'Pulseiras para Smartwatch' },
+        ],
+      },
+    ],
+  },
+  {
+    id: '300',
+    name: 'Eletrodomesticos',
+    children: [
+      {
+        id: '310',
+        name: 'Refrigeracao',
+        children: [
+          { id: '311', name: 'Geladeiras' },
+          { id: '312', name: 'Freezers' },
+        ],
+      },
+      {
+        id: '320',
+        name: 'Lavanderia',
+        children: [
+          { id: '321', name: 'Maquinas de Lavar' },
+          { id: '322', name: 'Secadoras de Roupas' },
+        ],
+      },
+      {
+        id: '330',
+        name: 'Pequenos Eletrodomesticos',
+        children: [
+          { id: '331', name: 'Liquidificadores' },
+          { id: '332', name: 'Fritadeiras sem Oleo (Air Fryers)' },
+        ],
+      },
+    ],
+  },
+  {
+    id: '400',
+    name: 'Moda',
+    children: [
+      {
+        id: '410',
+        name: 'Roupas Femininas',
+        children: [
+          { id: '411', name: 'Vestidos' },
+          { id: '412', name: 'Blusas e Camisetas' },
+        ],
+      },
+      {
+        id: '420',
+        name: 'Roupas Masculinas',
+        children: [
+          { id: '421', name: 'Camisetas' },
+          { id: '422', name: 'Calcas' },
+        ],
+      },
+      {
+        id: '430',
+        name: 'Calcados',
+        children: [
+          { id: '431', name: 'Tenis' },
+          { id: '432', name: 'Sandalias' },
+        ],
+      },
+    ],
+  },
+  {
+    id: '500',
+    name: 'Esportes e Fitness',
+    children: [
+      {
+        id: '510',
+        name: 'Ciclismo',
+        children: [
+          { id: '511', name: 'Bicicletas' },
+          { id: '512', name: 'Acessorios e Pecas' },
+        ],
+      },
+      {
+        id: '520',
+        name: 'Musculacao e Fitness',
+        children: [
+          { id: '521', name: 'Halteres e Pesos' },
+          { id: '522', name: 'Esteiras Ergometricas' },
+        ],
+      },
+      {
+        id: '530',
+        name: 'Futebol',
+        children: [
+          { id: '531', name: 'Bolas de Futebol' },
+          { id: '532', name: 'Chuteiras' },
+        ],
+      },
+    ],
+  },
+]
+
+function findCategoryNodeById(nodes: Array<CategoryNode>, targetId: string): CategoryNode | null {
+  for (const node of nodes) {
+    if (node.id === targetId) {
+      return node
+    }
+
+    if (node.children) {
+      const found = findCategoryNodeById(node.children, targetId)
+
+      if (found) {
+        return found
+      }
+    }
+  }
+
+  return null
+}
+
+function mapItems(nodes: Array<CategoryNode>) {
+  return nodes.map((node) => ({
+    id: node.id,
+    name: node.name,
+  }))
+}
+
 const announcementItems = [
   {
     codeOnChannel: 'MLB-1000',
@@ -200,12 +384,28 @@ export function getListConnectionsData() {
   }
 }
 
-export function getCategorizationData() {
+export function getCategorizationData(parent?: string) {
+  if (!parent) {
+    return {
+      items: mapItems(categoryTree),
+    }
+  }
+
+  const node = findCategoryNodeById(categoryTree, parent)
+
+  if (!node) {
+    return {
+      items: [],
+    }
+  }
+
+  if (node.children && node.children.length > 0) {
+    return {
+      items: mapItems(node.children),
+    }
+  }
+
   return {
-    items: [
-      { id: 'cat-1', name: 'Eletronicos' },
-      { id: 'cat-2', name: 'Informatica' },
-    ],
     facets: announcementFacets,
   }
 }
