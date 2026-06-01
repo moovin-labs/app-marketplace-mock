@@ -7,12 +7,12 @@ const syncControl = {
 
 const connectionItems = [
   {
-    id: 'conn-ml-01',
-    name: 'Mercado Livre Principal',
+    id: 'provider-01',
+    name: 'Provider Connection 1',
   },
   {
-    id: 'conn-shp-01',
-    name: 'Shopee BR',
+    id: 'provider-02',
+    name: 'Provider Connection 2',
   },
 ]
 
