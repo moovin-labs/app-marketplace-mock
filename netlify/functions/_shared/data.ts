@@ -421,12 +421,14 @@ export function getAnnouncementByCode(codeOnChannel: string) {
   return announcementItems.find((item) => item.codeOnChannel === codeOnChannel)
 }
 
-export function getAnnouncementOperationData() {
+export function getAnnouncementOperationData(codeOnSource?: string) {
   return {
+    codeOnSource,
     codeOnChannel: 'MLB-NEW-2001',
     syncControl,
     variations: [
       {
+        codeOnSource,
         codeOnChannel: 'MLB-NEW-2001-BLK',
         syncControl,
         stock: {

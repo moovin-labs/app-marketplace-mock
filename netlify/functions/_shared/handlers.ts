@@ -62,9 +62,17 @@ export const handlers: Record<CommandName, CommandResolver> = {
     return success(announcement)
   },
 
-  createAnnouncement: async () => success(getAnnouncementOperationData()),
+  createAnnouncement: async (data) => {
+    const codeOnSource = getDataString(data, 'codeOnSource')
 
-  updateAnnouncement: async () => success(getAnnouncementOperationData()),
+    return success(getAnnouncementOperationData(codeOnSource ?? undefined))
+  },
+
+  updateAnnouncement: async (data) => {
+    const codeOnSource = getDataString(data, 'codeOnSource')
+
+    return success(getAnnouncementOperationData(codeOnSource ?? undefined))
+  },
 
   updateStock: async () => success(getSyncControlData()),
 
