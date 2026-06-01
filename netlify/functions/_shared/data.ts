@@ -421,24 +421,50 @@ export function getAnnouncementByCode(codeOnChannel: string) {
   return announcementItems.find((item) => item.codeOnChannel === codeOnChannel)
 }
 
-export function getAnnouncementOperationData(codeOnSource?: string) {
+type AnnouncementOperationInput = {
+  codeOnSource?: string
+  codeOnChannel?: string
+  variations?: Array<{
+    codeOnSource?: string
+    codeOnChannel?: string
+  }>
+}
+
+export function getAnnouncementOperationData(input?: AnnouncementOperationInput) {
+  const codeOnChannel = input?.codeOnChannel || 'MLB-NEW-2001'
+
+  const variations =
+    input?.variations && input.variations.length > 0
+      ? input.variations.map((variation, index) => ({
+          codeOnSource: variation.codeOnSource,
+          codeOnChannel: variation.codeOnChannel || `${codeOnChannel}-${index + 1}`,
+          syncControl,
+          stock: {
+            syncControl,
+          },
+          price: {
+            syncControl,
+          },
+        }))
+      : [
+          {
+            codeOnSource: input?.codeOnSource,
+            codeOnChannel: `${codeOnChannel}-1`,
+            syncControl,
+            stock: {
+              syncControl,
+            },
+            price: {
+              syncControl,
+            },
+          },
+        ]
+
   return {
-    codeOnSource,
-    codeOnChannel: 'MLB-NEW-2001',
+    codeOnSource: input?.codeOnSource,
+    codeOnChannel,
     syncControl,
-    variations: [
-      {
-        codeOnSource,
-        codeOnChannel: 'MLB-NEW-2001-BLK',
-        syncControl,
-        stock: {
-          syncControl,
-        },
-        price: {
-          syncControl,
-        },
-      },
-    ],
+    variations,
   }
 }
 

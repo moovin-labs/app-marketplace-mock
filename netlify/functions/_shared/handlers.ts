@@ -1,13 +1,13 @@
 import type { CommandName, CommandResolver, ErrorEnvelope, SuccessEnvelope } from './contracts'
 import {
-    getAnnouncementByCode,
-    getAnnouncementOperationData,
-    getCategorizationData,
-    getListAnnouncementsData,
-    getListConnectionsData,
-    getListOrdersData,
-    getOrderByCode,
-    getSyncControlData,
+  getAnnouncementByCode,
+  getAnnouncementOperationData,
+  getCategorizationData,
+  getListAnnouncementsData,
+  getListConnectionsData,
+  getListOrdersData,
+  getOrderByCode,
+  getSyncControlData,
 } from './data'
 import { json } from './http'
 
@@ -33,6 +33,31 @@ function getDataString(data: Record<string, unknown>, key: string): string | nul
   const value = data[key]
 
   return typeof value === 'string' && value.length > 0 ? value : null
+}
+
+function getAnnouncementOperationInput(data: Record<string, unknown>) {
+  const codeOnSource = getDataString(data, 'codeOnSource') ?? undefined
+  const codeOnChannel = getDataString(data, 'codeOnChannel') ?? undefined
+  const variationsValue = data['variations']
+
+  const variations = Array.isArray(variationsValue)
+    ? variationsValue.map(item => {
+        const value = item as Record<string, unknown>
+
+        return {
+          codeOnSource:
+            typeof value?.['codeOnSource'] === 'string' ? (value['codeOnSource'] as string) : undefined,
+          codeOnChannel:
+            typeof value?.['codeOnChannel'] === 'string' ? (value['codeOnChannel'] as string) : undefined,
+        }
+      })
+    : undefined
+
+  return {
+    codeOnSource,
+    codeOnChannel,
+    variations,
+  }
 }
 
 export const handlers: Record<CommandName, CommandResolver> = {
@@ -63,15 +88,15 @@ export const handlers: Record<CommandName, CommandResolver> = {
   },
 
   createAnnouncement: async (data) => {
-    const codeOnSource = getDataString(data, 'codeOnSource')
+    const input = getAnnouncementOperationInput(data)
 
-    return success(getAnnouncementOperationData(codeOnSource ?? undefined))
+    return success(getAnnouncementOperationData(input))
   },
 
   updateAnnouncement: async (data) => {
-    const codeOnSource = getDataString(data, 'codeOnSource')
+    const input = getAnnouncementOperationInput(data)
 
-    return success(getAnnouncementOperationData(codeOnSource ?? undefined))
+    return success(getAnnouncementOperationData(input))
   },
 
   updateStock: async () => success(getSyncControlData()),
