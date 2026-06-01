@@ -5,7 +5,7 @@ import { json } from './http'
 export async function dispatchCommand(
   command: CommandName,
   data: Record<string, unknown>,
-  connectionId: string | undefined,
+  connectionId: string | null | undefined,
 ) {
   const handler = handlers[command]
 

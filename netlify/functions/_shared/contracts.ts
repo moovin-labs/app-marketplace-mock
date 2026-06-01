@@ -16,7 +16,7 @@ export const commandEnum = z.enum([
 
 export const marketplaceCommandRequestSchema = z.object({
   command: commandEnum,
-  connectionId: z.string().min(1).optional(),
+  connectionId: z.union([z.string().min(1), z.null()]).optional(),
   data: z.record(z.unknown()).default({}),
 })
 
@@ -31,7 +31,7 @@ export type MockFunctionResponse = {
 
 export type CommandResolver = (
   data: Record<string, unknown>,
-  connectionId: string | undefined,
+  connectionId: string | null | undefined,
 ) => Promise<MockFunctionResponse>
 
 export type SuccessEnvelope<T> = {
